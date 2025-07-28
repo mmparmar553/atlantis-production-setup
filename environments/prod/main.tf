@@ -1,5 +1,4 @@
-# Development Environment - Enterprise Atlantis Demo
-# This demonstrates real Atlantis automation with enterprise security
+# Production Environment - Simple Atlantis Demo
 
 terraform {
   required_version = ">= 1.0.0"
@@ -13,13 +12,6 @@ terraform {
       version = "~> 3.1"
     }
   }
-  
-  # In production, use remote backend
-  # backend "s3" {
-  #   bucket = "your-terraform-state-bucket"
-  #   key    = "environments/dev/terraform.tfstate"
-  #   region = "us-west-2"
-  # }
 }
 
 provider "aws" {
@@ -32,22 +24,19 @@ provider "aws" {
       ManagedBy     = "atlantis"
       Owner         = "sre-team"
       CostCenter    = "engineering"
-      Compliance    = "required"
+      Criticality   = "high"
     }
   }
 }
 
-# Data sources
-data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
-
-# Local values for enterprise standards
+# Local values
 locals {
   common_tags = {
     Environment = var.environment
     Project     = "atlantis-enterprise"
     ManagedBy   = "atlantis"
     Owner       = "sre-team"
+    Criticality = "high"
   }
   
   name_prefix = "${var.environment}-atlantis-enterprise"
