@@ -137,16 +137,28 @@ output "vpc_flow_log_group_arn" {
   value       = aws_cloudwatch_log_group.vpc_flow_log.arn
 }
 
-# Resource Counts for Cost Tracking
-output "resource_counts" {
-  description = "Count of resources created for cost tracking"
+# Monitoring Outputs
+output "sns_topic_arn" {
+  description = "ARN of the infrastructure alerts SNS topic"
+  value       = aws_sns_topic.infrastructure_alerts.arn
+}
+
+output "cloudwatch_dashboard_url" {
+  description = "URL of the CloudWatch dashboard"
+  value       = "https://${var.aws_region}.console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards:name=${aws_cloudwatch_dashboard.infrastructure.dashboard_name}"
+}
+
+output "application_log_group_name" {
+  description = "Name of the application log group"
+  value       = aws_cloudwatch_log_group.application_logs.name
+}
+
+output "monitoring_alarms" {
+  description = "List of monitoring alarms created"
   value = {
-    vpc_count                = 1
-    public_subnets_count     = length(aws_subnet.public)
-    private_subnets_count    = length(aws_subnet.private)
-    nat_gateways_count       = length(aws_nat_gateway.main)
-    security_groups_count    = 4
-    s3_buckets_count         = 3
-    cloudwatch_log_groups    = 1
+    s3_bucket_size_alarm    = aws_cloudwatch_metric_alarm.s3_bucket_size.alarm_name
+    vpc_flow_log_errors     = aws_cloudwatch_metric_alarm.vpc_flow_log_errors.alarm_name
+    security_events_alarm   = aws_cloudwatch_metric_alarm.security_events.alarm_name
+    composite_health_alarm  = aws_cloudwatch_composite_alarm.infrastructure_health.alarm_name
   }
 }
