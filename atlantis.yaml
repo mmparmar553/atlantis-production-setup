@@ -4,104 +4,27 @@ delete_source_branch_on_merge: true
 parallel_plan: true
 parallel_apply: false
 
-# Enterprise security settings
-allowed_regexp_prefixes:
-  - dev/
-  - staging/
-  - prod/
-
 projects:
 - name: dev-infrastructure
   dir: environments/dev
   terraform_version: v1.5.0
   autoplan:
-    when_modified: ["*.tf", "*.tfvars", "../../modules/**/*.tf"]
+    when_modified: ["*.tf", "*.tfvars"]
     enabled: true
   apply_requirements: ["approved", "mergeable"]
-  workflow: enterprise-security
 
 - name: staging-infrastructure
   dir: environments/staging
   terraform_version: v1.5.0
   autoplan:
-    when_modified: ["*.tf", "*.tfvars", "../../modules/**/*.tf"]
+    when_modified: ["*.tf", "*.tfvars"]
     enabled: true
   apply_requirements: ["approved", "mergeable"]
-  workflow: enterprise-security
 
 - name: prod-infrastructure
   dir: environments/prod
   terraform_version: v1.5.0
   autoplan:
-    when_modified: ["*.tf", "*.tfvars", "../../modules/**/*.tf"]
+    when_modified: ["*.tf", "*.tfvars"]
     enabled: true
   apply_requirements: ["approved", "mergeable"]
-  workflow: production-security
-
-workflows:
-  enterprise-security:
-    plan:
-      steps:
-      - env:
-          name: TF_VAR_environment
-          command: 'basename $(pwd)'
-      - run: |
-          echo "🔍 Enterprise Security Scan: Terraform Format Check"
-          terraform fmt -check=true -diff=true
-      - run: |
-          echo "🔍 Enterprise Security Scan: Terraform Validation"
-          terraform validate
-      - run: |
-          echo "🔍 Enterprise Security Scan: Security Policy Check"
-          # In real setup, this would run tools like tfsec, checkov, etc.
-          echo "✅ Security policies validated"
-      - run: |
-          echo "📋 Generating Terraform Plan with Cost Estimation"
-          terraform plan -input=false -out=$PLANFILE
-      - run: |
-          echo "🔒 Enterprise Security Review Required"
-          echo "⚠️  Manual approval required before apply"
-    apply:
-      steps:
-      - run: |
-          echo "🚀 Applying Enterprise Infrastructure Changes"
-          echo "📝 Logging apply action for compliance audit"
-          terraform apply -input=false $PLANFILE
-      - run: |
-          echo "✅ Apply completed successfully"
-          echo "📊 Generating compliance report"
-          echo "🔔 Notifying stakeholders of infrastructure changes"
-
-  production-security:
-    plan:
-      steps:
-      - env:
-          name: TF_VAR_environment
-          command: 'basename $(pwd)'
-      - run: |
-          echo "🔒 PRODUCTION Security Scan: Enhanced Validation"
-          terraform fmt -check=true -diff=true
-      - run: |
-          echo "🔒 PRODUCTION Security Scan: Terraform Validation"
-          terraform validate
-      - run: |
-          echo "🔒 PRODUCTION Security Scan: Advanced Security Policies"
-          echo "✅ Production security policies validated"
-      - run: |
-          echo "💰 PRODUCTION: Cost Impact Analysis"
-          echo "📋 Generating Production Terraform Plan"
-          terraform plan -input=false -out=$PLANFILE
-      - run: |
-          echo "🚨 PRODUCTION DEPLOYMENT NOTICE"
-          echo "⚠️  PRODUCTION changes require senior approval"
-          echo "📞 Stakeholder notification sent"
-    apply:
-      steps:
-      - run: |
-          echo "🚨 PRODUCTION DEPLOYMENT IN PROGRESS"
-          echo "📝 Enhanced logging for production compliance"
-          terraform apply -input=false $PLANFILE
-      - run: |
-          echo "✅ PRODUCTION deployment completed"
-          echo "📊 Production compliance report generated"
-          echo "🔔 Production stakeholders notified"
